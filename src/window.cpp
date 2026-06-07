@@ -1,5 +1,4 @@
 #include "window.h"
-#include "def.h"
 #include "sdlutils.h"
 #include <iostream>
 
@@ -7,14 +6,14 @@
 IWindow::~IWindow(void)
 {
    // Remove last window
-   g_windows.pop_back();
+   m_config->PopWindow();
    g_hasChanged = true;
 }
 
 //------------------------------------------------------------------------------
 
 // Constructor
-IWindow::IWindow(const bool p_fullscreen, const std::string &p_title) :
+IWindow::IWindow(config_t* config, const bool p_fullscreen, const std::string &p_title) :
    m_fullscreen(p_fullscreen),
    m_title(p_title),
    m_cursor(0),
@@ -24,7 +23,8 @@ IWindow::IWindow(const bool p_fullscreen, const std::string &p_title) :
    m_nbVisibleChars(0),
    m_timer(0),
    m_lastPressed(-1),
-   m_retVal(-1)
+   m_retVal(-1),
+   m_config(config)
 {
    // Init camera
    m_camera.x = 0;
@@ -37,7 +37,7 @@ IWindow::IWindow(const bool p_fullscreen, const std::string &p_title) :
    // Init m_nbVisibleLines
    m_nbVisibleLines = (SCREEN_HEIGHT - LINE_HEIGHT) / LINE_HEIGHT;
    // Add window to the list
-   g_windows.push_back(this);
+   config->PushWindow(this);
    g_hasChanged = true;
 }
 
@@ -197,25 +197,25 @@ int IWindow::execute(void)
 // Render all windows
 void IWindow::renderAll(void)
 {
-   if (g_windows.empty())
+   if (m_config->windows.empty())
       return;
    // First window to draw is the last that is fullscreen
-   int ind = g_windows.size() - 1;
-   while (ind > 0 && !g_windows[ind]->isFullScreen())
+   int ind = m_config->windows.size() - 1;
+   while (ind > 0 && !m_config->windows[ind]->isFullScreen())
       --ind;
    // Draw windows
-   for (std::vector<IWindow *>::iterator it = g_windows.begin() + ind; it != g_windows.end(); ++it)
-      (*it)->render(it + 1 == g_windows.end());
+   for (std::vector<IWindow *>::iterator it = m_config->windows.begin() + ind; it != m_config->windows.end(); ++it)
+      (*it)->render(it + 1 == m_config->windows.end());
 }
 
 //------------------------------------------------------------------------------
 
 void IWindow::renderPresent(void)
 {
-   SDL_RenderPresent(g_renderer);
+   SDL_RenderPresent(m_config->renderer);
    #ifndef DEVICE_PC
-   SDL_RenderPresent(g_renderer);
-   SDL_RenderPresent(g_renderer);
+   SDL_RenderPresent(m_config->renderer);
+   SDL_RenderPresent(m_config->renderer);
    #endif
 }
 

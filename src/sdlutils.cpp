@@ -2,11 +2,27 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include "sdlutils.h"
-
 //------------------------------------------------------------------------------
 
+config_t::config_t(const std::vector<std::string>& res_list)
+{
+   SDLUtils::init(this);
+
+   for (const auto& name : res_list)
+   {
+      std::string filename = fmt::format("{}/{}/{}.png", RES_PATH, ICON_SIZE, name);
+      SDL_Texture* texture = SDLUtils::loadTexture(this, filename);
+      resources.add({ name, texture });
+   }
+}
+
+config_t::~config_t()
+{   
+   SDLUtils::close(this);
+}
+
 // Init SDL
-bool SDLUtils::init()
+bool SDLUtils::init(config_t* config)
 {
    INHIBIT(std::cout << "SDLUtils::Init()" << std::endl;)
 
@@ -36,8 +52,8 @@ bool SDLUtils::init()
    INHIBIT(std::cout << "SDL_NumJoysticks: '" << SDL_NumJoysticks() << "'" << std::endl;)
    if (SDL_NumJoysticks() >= 1)
    {
-      g_joystick = SDL_JoystickOpen(0);
-      if (g_joystick == NULL)
+      config->joystick = SDL_JoystickOpen(0);
+      if (config->joystick == NULL)
       {
          std::cerr << "Unable to open joystick." << std::endl;
          return false;
@@ -47,11 +63,11 @@ bool SDLUtils::init()
 
    // Create window
    #if FULLSCREEN == 1
-      g_window = SDL_CreateWindow(APP_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN);
+      config->window = SDL_CreateWindow(APP_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN);
    #else
-      g_window = SDL_CreateWindow(APP_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+      config->window = SDL_CreateWindow(APP_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
    #endif
-   if (g_window == NULL)
+   if (config->window == NULL)
    {
       std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
       return false;
@@ -59,11 +75,11 @@ bool SDLUtils::init()
 
    // Create renderer
    #if HARDWARE_ACCELERATION == 1
-   g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED);
+   config->renderer = SDL_CreateRenderer(config->window, -1, SDL_RENDERER_ACCELERATED);
    #else
-   g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_SOFTWARE);
+   config->renderer = SDL_CreateRenderer(config->window, -1, SDL_RENDERER_SOFTWARE);
    #endif
-   if (g_renderer == NULL)
+   if (config->renderer == NULL)
    {
       std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() << std::endl;
       return false;
@@ -75,29 +91,29 @@ bool SDLUtils::init()
 //------------------------------------------------------------------------------
 
 // Close SDL
-void SDLUtils::close()
+void SDLUtils::close(config_t* config)
 {
    INHIBIT(std::cout << "SDLUtils::close()" << std::endl;)
 
    // Renderer
-   if (g_renderer != NULL)
+   if (config->renderer != NULL)
    {
-      SDL_DestroyRenderer(g_renderer);
-      g_renderer = NULL;
+      SDL_DestroyRenderer(config->renderer);
+      config->renderer = NULL;
    }
 
    // Window
-   if (g_window != NULL)
+   if (config->window != NULL)
    {
-      SDL_DestroyWindow(g_window);
-      g_window = NULL;
+      SDL_DestroyWindow(config->window);
+      config->window = NULL;
    }
 
    // Joystick
-   if (g_joystick != NULL)
+   if (config->joystick != NULL)
    {
-      SDL_JoystickClose(g_joystick);
-      g_joystick = NULL;
+      SDL_JoystickClose(config->joystick);
+      config->joystick = NULL;
    }
 
    // SDL_ttf
@@ -113,7 +129,7 @@ void SDLUtils::close()
 //------------------------------------------------------------------------------
 
 // Load a texture
-SDL_Texture* SDLUtils::loadTexture(const std::string &p_path)
+SDL_Texture* SDLUtils::loadTexture(config_t* config, const std::string &p_path)
 {
    INHIBIT(std::cout << "SDLUtils::loadTexture(" << p_path << ")" << std::endl;)
    SDL_Texture* texture = NULL;
@@ -123,7 +139,7 @@ SDL_Texture* SDLUtils::loadTexture(const std::string &p_path)
       std::cerr << "Unable to load image '" << p_path << "'! SDL_Error: " << SDL_GetError() << std::endl;
       return NULL;
    }
-   texture = SDL_CreateTextureFromSurface(g_renderer, surface);
+   texture = SDL_CreateTextureFromSurface(config->renderer, surface);
    if (texture == NULL)
       std::cerr << "Unable to create texture from '" << p_path << "'! SDL_Error: " << SDL_GetError() << std::endl;
    SDL_FreeSurface(surface);
@@ -145,7 +161,7 @@ TTF_Font *SDLUtils::loadFont(const std::string &p_path, const int p_size)
 //------------------------------------------------------------------------------
 
 // Render a texture
-void SDLUtils::renderTexture(SDL_Texture * p_texture, const int p_x, const int p_y, const T_ALIGN_H p_alignH, const T_ALIGN_V p_alignV, const SDL_RendererFlip p_flip, const SDL_Rect *p_clip)
+void SDLUtils::renderTexture(config_t* config, SDL_Texture * p_texture, const int p_x, const int p_y, const T_ALIGN_H p_alignH, const T_ALIGN_V p_alignV, const SDL_RendererFlip p_flip, const SDL_Rect *p_clip)
 {
    // Destination rectangle
    SDL_Rect destRect;
@@ -184,17 +200,17 @@ void SDLUtils::renderTexture(SDL_Texture * p_texture, const int p_x, const int p
    }
    // Render copy
    if (p_flip == SDL_FLIP_NONE)
-      SDL_RenderCopy(g_renderer, p_texture, p_clip, &destRect);
+      SDL_RenderCopy(config->renderer, p_texture, p_clip, &destRect);
    else
-      SDL_RenderCopyEx(g_renderer, p_texture, p_clip, &destRect, 0.0, NULL, p_flip);
+      SDL_RenderCopyEx(config->renderer, p_texture, p_clip, &destRect, 0.0, NULL, p_flip);
 }
 
 //------------------------------------------------------------------------------
 
 // Render text on the screen
-int SDLUtils::renderText(const std::string &p_text, TTF_Font *p_font, const int p_x, const int p_y, const SDL_Color &p_fg, const SDL_Color &p_bg, const T_ALIGN_H p_alignH, const T_ALIGN_V p_alignV, const int p_maxWidth, const T_ALIGN_H p_alignHClip)
+int SDLUtils::renderText(config_t* config, const std::string &p_text, TTF_Font *p_font, const int p_x, const int p_y, const SDL_Color &p_fg, const SDL_Color &p_bg, const T_ALIGN_H p_alignH, const T_ALIGN_V p_alignV, const int p_maxWidth, const T_ALIGN_H p_alignHClip)
 {
-   SDL_Texture *texture = renderText(p_text, p_font, p_fg, p_bg);
+   SDL_Texture *texture = renderText(config, p_text, p_font, p_fg, p_bg);
    if (texture == NULL)
    {
       std::cerr << "Unable to create texture from surface. SDL_Error: " << SDL_GetError() << std::endl;
@@ -209,11 +225,11 @@ int SDLUtils::renderText(const std::string &p_text, TTF_Font *p_font, const int 
       SDL_Rect rect = { 0, 0, p_maxWidth, h};
       if (p_alignHClip == T_ALIGN_RIGHT)
          rect.x = w - rect.w;
-      renderTexture(texture, p_x, p_y, p_alignH, p_alignV, SDL_FLIP_NONE, &rect);
+      renderTexture(config, texture, p_x, p_y, p_alignH, p_alignV, SDL_FLIP_NONE, &rect);
    }
    else
    {
-      renderTexture(texture, p_x, p_y, p_alignH, p_alignV);
+      renderTexture(config, texture, p_x, p_y, p_alignH, p_alignV);
    }
    // Free texture
    SDL_DestroyTexture(texture);
@@ -222,7 +238,7 @@ int SDLUtils::renderText(const std::string &p_text, TTF_Font *p_font, const int 
 
 //------------------------------------------------------------------------------
 
-SDL_Texture *SDLUtils::renderText(const std::string &p_text, TTF_Font *p_font, const SDL_Color &p_fg, const SDL_Color &p_bg)
+SDL_Texture *SDLUtils::renderText(config_t* config, const std::string &p_text, TTF_Font *p_font, const SDL_Color &p_fg, const SDL_Color &p_bg)
 {
    // Create surface
    SDL_Surface *surface = TTF_RenderUTF8_Shaded(p_font, p_text.c_str(), p_fg, p_bg);
@@ -232,7 +248,7 @@ SDL_Texture *SDLUtils::renderText(const std::string &p_text, TTF_Font *p_font, c
       return NULL;
    }
    // Create texture from surface
-   SDL_Texture *texture = SDL_CreateTextureFromSurface(g_renderer, surface);
+   SDL_Texture *texture = SDL_CreateTextureFromSurface(config->renderer, surface);
    SDL_FreeSurface(surface);
    if (texture == NULL)
    {
@@ -246,9 +262,9 @@ SDL_Texture *SDLUtils::renderText(const std::string &p_text, TTF_Font *p_font, c
 
 // Render text on the screen, with clip scrolling
 // Return: width of the texture
-int SDLUtils::renderTextScrolling(const std::string &p_text, TTF_Font *p_font, const int p_x, const int p_y, const SDL_Color &p_fg, const SDL_Color &p_bg, const T_ALIGN_H p_alignH, const T_ALIGN_V p_alignV, const int p_maxWidth, const int p_clipX)
+int SDLUtils::renderTextScrolling(config_t* config, const std::string &p_text, TTF_Font *p_font, const int p_x, const int p_y, const SDL_Color &p_fg, const SDL_Color &p_bg, const T_ALIGN_H p_alignH, const T_ALIGN_V p_alignV, const int p_maxWidth, const int p_clipX)
 {
-   SDL_Texture *texture = renderText(p_text, p_font, p_fg, p_bg);
+   SDL_Texture *texture = renderText(config, p_text, p_font, p_fg, p_bg);
    if (texture == NULL)
    {
       std::cerr << "Unable to create texture from surface. SDL_Error: " << SDL_GetError() << std::endl;
@@ -263,11 +279,11 @@ int SDLUtils::renderTextScrolling(const std::string &p_text, TTF_Font *p_font, c
       SDL_Rect rect = { p_clipX, 0, p_maxWidth, h};
       if (p_clipX + p_maxWidth > w)
          rect.w = w - p_clipX;
-      renderTexture(texture, p_x, p_y, p_alignH, p_alignV, SDL_FLIP_NONE, &rect);
+      renderTexture(config, texture, p_x, p_y, p_alignH, p_alignV, SDL_FLIP_NONE, &rect);
    }
    else
    {
-      renderTexture(texture, p_x, p_y, p_alignH, p_alignV);
+      renderTexture(config, texture, p_x, p_y, p_alignH, p_alignV);
    }
    // Free texture
    SDL_DestroyTexture(texture);
@@ -277,10 +293,10 @@ int SDLUtils::renderTextScrolling(const std::string &p_text, TTF_Font *p_font, c
 //------------------------------------------------------------------------------
 
 // Width of one character in monospace font
-int SDLUtils::getCharWidthMono(void)
+int SDLUtils::getCharWidthMono(config_t* config)
 {
    int w(0);
-   SDL_Texture *tex = SDLUtils::renderText("a", g_fontMono, {COLOR_TEXT_NORMAL}, {COLOR_BODY_BG});
+   SDL_Texture *tex = SDLUtils::renderText(config, "a", config->monoFont, {COLOR_TEXT_NORMAL}, {COLOR_BODY_BG});
    SDL_QueryTexture(tex, NULL, NULL, &w, NULL);
    SDL_DestroyTexture(tex);
    return w;

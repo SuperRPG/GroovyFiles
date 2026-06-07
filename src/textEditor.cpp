@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "textEditor.h"
-#include "def.h"
+// #include "def.h"
 #include "sdlutils.h"
 #include "keyboard.h"
 #include "dialog.h"
@@ -9,8 +9,8 @@
 //------------------------------------------------------------------------------
 
 // Constructor
-TextEditor::TextEditor(const std::string &p_title):
-   IWindow(true, p_title),
+TextEditor::TextEditor(config_t* config, const std::string &p_title):
+   IWindow(config, true, p_title),
    m_oldX(0),
    m_hasModifications(false)
 {
@@ -37,7 +37,7 @@ TextEditor::TextEditor(const std::string &p_title):
    // Init scrollbar
    adjustScrollbar();
    // Number of visible chars
-   m_nbVisibleChars = round(static_cast<double>(SCREEN_WIDTH - 2*MARGIN_X - m_scrollbar.w) / g_charW);
+   m_nbVisibleChars = round(static_cast<double>(SCREEN_WIDTH - 2*MARGIN_X - m_scrollbar.w) / m_config->char_width);
 }
 
 //------------------------------------------------------------------------------
@@ -53,26 +53,26 @@ TextEditor::~TextEditor(void)
 void TextEditor::render(const bool p_focus)
 {
    // Clear screen
-   SDL_SetRenderDrawColor(g_renderer, COLOR_BODY_BG, 255);
-   SDL_RenderClear(g_renderer);
+   SDL_SetRenderDrawColor(m_config->renderer, COLOR_BODY_BG, 255);
+   SDL_RenderClear(m_config->renderer);
 
    // Render title background
-   SDL_SetRenderDrawColor(g_renderer, COLOR_TITLE_BG, 255);
+   SDL_SetRenderDrawColor(m_config->renderer, COLOR_TITLE_BG, 255);
    SDL_Rect rect { 0, 0, SCREEN_WIDTH, LINE_HEIGHT };
-   SDL_RenderFillRect(g_renderer, &rect);
+   SDL_RenderFillRect(m_config->renderer, &rect);
 
    // Render title
    int l_y = LINE_HEIGHT / 2;
-   SDLUtils::renderTexture(g_iconEdit, MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
-   SDLUtils::renderText(m_title, g_font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, {COLOR_TEXT_NORMAL}, {COLOR_TITLE_BG}, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderTexture(m_config, m_config->findTexture("edit"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderText(m_config, m_title, m_config->font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, {COLOR_TEXT_NORMAL}, {COLOR_TITLE_BG}, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
 
    // Render scrollbar
    if (p_focus)
-      SDL_SetRenderDrawColor(g_renderer, COLOR_CURSOR_FOCUS, 255);
+      SDL_SetRenderDrawColor(m_config->renderer, COLOR_CURSOR_FOCUS, 255);
    else
-      SDL_SetRenderDrawColor(g_renderer, COLOR_CURSOR_NO_FOCUS, 255);
+      SDL_SetRenderDrawColor(m_config->renderer, COLOR_CURSOR_NO_FOCUS, 255);
    if (m_scrollbar.h > 0)
-      SDL_RenderFillRect(g_renderer, &m_scrollbar);
+      SDL_RenderFillRect(m_config->renderer, &m_scrollbar);
 
    // Render lines
    l_y += LINE_HEIGHT;
@@ -89,7 +89,7 @@ void TextEditor::render(const bool p_focus)
       // Case: no text selection
       if (m_textSelectionStart.y == -1 || m_textSelectionEnd.y == -1)
       {
-         SDLUtils::renderText(m_lines[l_i].substr(m_camera.x, m_nbVisibleChars), g_fontMono, MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderText(m_config, m_lines[l_i].substr(m_camera.x, m_nbVisibleChars), m_config->monoFont, MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
          continue;
       }
       // Case: text selection
@@ -101,20 +101,20 @@ void TextEditor::render(const bool p_focus)
       nbCharPart3 = subLine.size() - nbCharPart1 - nbCharPart2;
       // Render line in 3 parts : unselected / selected / unselected
       if (nbCharPart1 > 0)
-         SDLUtils::renderText(subLine.substr(0, nbCharPart1), g_fontMono, MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderText(m_config, subLine.substr(0, nbCharPart1), m_config->monoFont, MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
       if (nbCharPart2 > 0 && ! subLine.substr(nbCharPart1, nbCharPart2).empty())
-         SDLUtils::renderText(subLine.substr(nbCharPart1, nbCharPart2), g_fontMono, MARGIN_X + nbCharPart1 * g_charW, l_y, l_fgColor, l_bgColorSelect, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderText(m_config, subLine.substr(nbCharPart1, nbCharPart2), m_config->monoFont, MARGIN_X + nbCharPart1 * m_config->char_width, l_y, l_fgColor, l_bgColorSelect, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
       if (nbCharPart3 > 0 && ! subLine.substr(nbCharPart1 + nbCharPart2, nbCharPart3).empty())
-         SDLUtils::renderText(subLine.substr(nbCharPart1 + nbCharPart2, nbCharPart3), g_fontMono, MARGIN_X + (nbCharPart1 + nbCharPart2) * g_charW, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderText(m_config, subLine.substr(nbCharPart1 + nbCharPart2, nbCharPart3), m_config->monoFont, MARGIN_X + (nbCharPart1 + nbCharPart2) * m_config->char_width, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
    }
 
    // Render cursor
-   SDL_SetRenderDrawColor(g_renderer, COLOR_TEXT_NORMAL, 255);
+   SDL_SetRenderDrawColor(m_config->renderer, COLOR_TEXT_NORMAL, 255);
    rect.w = 1;
    rect.h = LINE_HEIGHT - 4;
-   rect.x = MARGIN_X + (m_inputTextCursor.x - m_camera.x) * g_charW;
+   rect.x = MARGIN_X + (m_inputTextCursor.x - m_camera.x) * m_config->char_width;
    rect.y = LINE_HEIGHT + 2 +(m_inputTextCursor.y - m_camera.y) * LINE_HEIGHT;
-   SDL_RenderFillRect(g_renderer, &rect);
+   SDL_RenderFillRect(m_config->renderer, &rect);
 }
 
 //------------------------------------------------------------------------------
@@ -134,7 +134,7 @@ void TextEditor::keyPressed(const SDL_Event &event)
          adjustScrollbarPosition();
       }
       // Open keyboard
-      Keyboard keyboard(this, false);
+      Keyboard keyboard(m_config, this, false);
       keyboard.execute();
       return;
    }
@@ -144,18 +144,18 @@ void TextEditor::keyPressed(const SDL_Event &event)
       // Reset timer
       resetTimer();
       // Open action menu
-      Dialog dialog("Actions:");
-      dialog.addOption("Save", 0, g_iconFloppy);
+      Dialog dialog(m_config, "Actions:");
+      dialog.addOption("Save", 0, m_config->findTexture("floppy"));
       if (m_textSelectionStart.y != -1 && m_textSelectionEnd.y != -1 && (m_textSelectionStart.x != m_textSelectionEnd.x || m_textSelectionStart.y != m_textSelectionEnd.y))
       {
-         dialog.addOption("Copy", 4, g_iconCopy);
-         dialog.addOption("Cut", 5, g_iconCut);
+         dialog.addOption("Copy", 4, m_config->findTexture("edit-copy"));
+         dialog.addOption("Cut", 5, m_config->findTexture("edit-cut"));
       }
       if (! m_clipboard.empty())
-         dialog.addOption("Paste", 6, g_iconPaste);
-      dialog.addOption("Delete line", 1, g_iconTrash);
-      dialog.addOption("Duplicate line", 2, g_iconPlus);
-      dialog.addOption("Quit", 3, g_iconQuit);
+         dialog.addOption("Paste", 6, m_config->findTexture("edit-paste"));
+      dialog.addOption("Delete line", 1, m_config->findTexture("trash"));
+      dialog.addOption("Duplicate line", 2, m_config->findTexture("plus"));
+      dialog.addOption("Quit", 3, m_config->findTexture("quit"));
       switch (dialog.execute())
       {
          case 0: save(); break;
@@ -311,9 +311,9 @@ void TextEditor::adjustCamera(void)
       m_camera.y = m_inputTextCursor.y - m_nbVisibleLines + 1;
 
    // Adjust camera X
-   if (MARGIN_X + (m_inputTextCursor.x - m_camera.x) * g_charW > SCREEN_WIDTH - m_scrollbar.w - MARGIN_X)
-      m_camera.x = m_inputTextCursor.x - ((SCREEN_WIDTH - m_scrollbar.w - 2*MARGIN_X) / g_charW);
-   else if ((m_inputTextCursor.x - m_camera.x) * g_charW < 0)
+   if (MARGIN_X + (m_inputTextCursor.x - m_camera.x) * m_config->char_width > SCREEN_WIDTH - m_scrollbar.w - MARGIN_X)
+      m_camera.x = m_inputTextCursor.x - ((SCREEN_WIDTH - m_scrollbar.w - 2*MARGIN_X) / m_config->char_width);
+   else if ((m_inputTextCursor.x - m_camera.x) * m_config->char_width < 0)
       m_camera.x = m_inputTextCursor.x;
 }
 
@@ -415,9 +415,9 @@ void TextEditor::save(void)
    std::ofstream ofs(m_title);
    if (! ofs.is_open())
    {
-      Dialog dialog("Error");
+      Dialog dialog(m_config, "Error");
       dialog.addLabel("Unable to write file.");
-      dialog.addOption("OK", 0, g_iconSelect);
+      dialog.addOption("OK", 0, m_config->findTexture("select"));
       return;
    }
    // Write new file
@@ -438,11 +438,11 @@ void TextEditor::quit(void)
 {
    if (m_hasModifications)
    {
-      Dialog dialog("Warning:");
+      Dialog dialog(m_config, "Warning:");
       dialog.addLabel("The file is not saved.");
-      dialog.addOption("Save", 0, g_iconFloppy);
-      dialog.addOption("Don't save", 1, g_iconNone);
-      dialog.addOption("Cancel", 2, g_iconCancel);
+      dialog.addOption("Save", 0, m_config->findTexture("floppy"));
+      dialog.addOption("Don't save", 1, m_config->findTexture("none"));
+      dialog.addOption("Cancel", 2, m_config->findTexture("cancel"));
       switch (dialog.execute())
       {
          case 0: save(); break;

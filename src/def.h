@@ -2,13 +2,15 @@
 #define _DEF_H_
 
 #include <vector>
+#include <list>
 #include <SDL.h>
 #include <SDL_ttf.h>
+#include <string>
 
 //~ #define INHIBIT(X) X
 #define INHIBIT(X) /* X */
 
-#define APP_NAME "351Files"
+#define APP_NAME "GroovyFiles"
 
 // Parameters for RG351P
 #if defined(DEVICE_RG351P)
@@ -286,33 +288,33 @@
 #endif
 
 // Globals
-extern SDL_Window* g_window;
-extern SDL_Renderer* g_renderer;
-extern SDL_Joystick* g_joystick;
-extern TTF_Font *g_font;                     // Variable size font
-extern TTF_Font *g_fontMono;                 // Mono size font
-extern int g_charW;                          // Width of one character in monospace font
-class IWindow;
-extern std::vector<IWindow *> g_windows;
+// extern SDL_Window* g_window;
+// extern SDL_Renderer* g_renderer;
+// extern SDL_Joystick* g_joystick;
+// extern TTF_Font *g_font;                     // Variable size font
+// extern TTF_Font *g_fontMono;                 // Mono size font
+// extern int g_charW;                          // Width of one character in monospace font
+// class IWindow;
+// extern std::vector<IWindow *> g_windows;
 
 // Textures for icons
-extern SDL_Texture *g_iconFile;
-extern SDL_Texture *g_iconDir;
-extern SDL_Texture *g_iconUp;
-extern SDL_Texture *g_iconCopy;
-extern SDL_Texture *g_iconCut;
-extern SDL_Texture *g_iconPaste;
-extern SDL_Texture *g_iconTrash;
-extern SDL_Texture *g_iconDisk;
-extern SDL_Texture *g_iconSelect;
-extern SDL_Texture *g_iconNone;
-extern SDL_Texture *g_iconNewDir;
-extern SDL_Texture *g_iconQuit;
-extern SDL_Texture *g_iconEdit;
-extern SDL_Texture *g_iconCancel;
-extern SDL_Texture *g_iconFloppy;
-extern SDL_Texture *g_iconImage;
-extern SDL_Texture *g_iconFileText;
-extern SDL_Texture *g_iconPlus;
+// extern SDL_Texture *g_iconFile;
+// extern SDL_Texture *g_iconDir;
+// extern SDL_Texture *g_iconUp;
+// extern SDL_Texture *g_iconCopy;
+// extern SDL_Texture *g_iconCut;
+// extern SDL_Texture *g_iconPaste;
+// extern SDL_Texture *g_iconTrash;
+// extern SDL_Texture *g_iconDisk;
+// extern SDL_Texture *g_iconSelect;
+// extern SDL_Texture *g_iconNone;
+// extern SDL_Texture *g_iconNewDir;
+// extern SDL_Texture *g_iconQuit;
+// extern SDL_Texture *g_iconEdit;
+// extern SDL_Texture *g_iconCancel;
+// extern SDL_Texture *g_iconFloppy;
+// extern SDL_Texture *g_iconImage;
+// extern SDL_Texture *g_iconFileText;
+// extern SDL_Texture *g_iconPlus;
 
 #endif

@@ -1,12 +1,12 @@
 #include <iostream>
 #include <sstream>
 #include "keyboard.h"
-#include "def.h"
+// #include "def.h"
 #include "sdlutils.h"
 
 // Constructor
-Keyboard::Keyboard(IWindow *p_parent, const bool p_quitOnEnter):
-   IWindow(false, ""),
+Keyboard::Keyboard(config_t* config, IWindow *p_parent, const bool p_quitOnEnter):
+   IWindow(config, false, ""),
    m_parent(p_parent),
    m_background(NULL),
    m_keyLabelCurrent(0),
@@ -24,11 +24,11 @@ Keyboard::Keyboard(IWindow *p_parent, const bool p_quitOnEnter):
    m_keyLabel[3] = "1234567890 ()[]{}~|^  @#%&*-+=`";
    std::ostringstream oss;
    oss << '/' << KEYBOARD_SYMBOL_SIZE;
-   m_texShiftEmpty =    SDLUtils::loadTexture(std::string(RES_PATH) + oss.str() + "/keyboard_shift_empty.png");
-   m_texShiftFull =     SDLUtils::loadTexture(std::string(RES_PATH) + oss.str() + "/keyboard_shift_full.png");
-   m_texEnter =         SDLUtils::loadTexture(std::string(RES_PATH) + oss.str() + "/keyboard_enter.png");
-   m_texArrow =         SDLUtils::loadTexture(std::string(RES_PATH) + oss.str() + "/keyboard_arrow.png");
-   m_texBackspace =     SDLUtils::loadTexture(std::string(RES_PATH) + oss.str() + "/keyboard_backspace.png");
+   m_texShiftEmpty =    SDLUtils::loadTexture(m_config, std::string(RES_PATH) + oss.str() + "/keyboard_shift_empty.png");
+   m_texShiftFull =     SDLUtils::loadTexture(m_config, std::string(RES_PATH) + oss.str() + "/keyboard_shift_full.png");
+   m_texEnter =         SDLUtils::loadTexture(m_config, std::string(RES_PATH) + oss.str() + "/keyboard_enter.png");
+   m_texArrow =         SDLUtils::loadTexture(m_config, std::string(RES_PATH) + oss.str() + "/keyboard_arrow.png");
+   m_texBackspace =     SDLUtils::loadTexture(m_config, std::string(RES_PATH) + oss.str() + "/keyboard_backspace.png");
    init();
 }
 
@@ -51,34 +51,34 @@ Keyboard::~Keyboard(void)
 void Keyboard::render(const bool p_focus)
 {
    // Keyboard background
-   SDL_RenderCopy(g_renderer, m_background, NULL, &m_keyboard);
+   SDL_RenderCopy(m_config->renderer, m_background, NULL, &m_keyboard);
    // Cursor
    if (p_focus)
-      SDL_SetRenderDrawColor(g_renderer, COLOR_CURSOR_FOCUS, 255);
+      SDL_SetRenderDrawColor(m_config->renderer, COLOR_CURSOR_FOCUS, 255);
    else
-      SDL_SetRenderDrawColor(g_renderer, COLOR_CURSOR_NO_FOCUS, 255);
+      SDL_SetRenderDrawColor(m_config->renderer, COLOR_CURSOR_NO_FOCUS, 255);
    SDL_Rect rect = m_key[m_cursor];
    rect.y += m_keyboard.y;
-   SDL_RenderFillRect(g_renderer, &rect);
+   SDL_RenderFillRect(m_config->renderer, &rect);
    // Draw key labels
    for (int ind = 0; ind <= 31; ++ind)
    {
       if (m_keyLabel[m_keyLabelCurrent].substr(ind, 1).empty())
          continue;
-      SDLUtils::renderText(m_keyLabel[m_keyLabelCurrent].substr(ind, 1), g_font, m_keyboard.x + m_key[ind].x + m_key[ind].w / 2, m_keyboard.y + m_key[ind].y + m_key[ind].h / 2, {COLOR_TEXT_NORMAL}, getBackgroundColor(ind, p_focus), SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
+      SDLUtils::renderText(m_config, m_keyLabel[m_keyLabelCurrent].substr(ind, 1), m_config->font, m_keyboard.x + m_key[ind].x + m_key[ind].w / 2, m_keyboard.y + m_key[ind].y + m_key[ind].h / 2, {COLOR_TEXT_NORMAL}, getBackgroundColor(ind, p_focus), SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
    }
    // Backspace
-   SDLUtils::renderTexture(m_texBackspace, m_keyboard.x + m_key[10].x + m_key[10].w / 2, m_keyboard.y + m_key[10].y + m_key[10].h / 2, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderTexture(m_config, m_texBackspace, m_keyboard.x + m_key[10].x + m_key[10].w / 2, m_keyboard.y + m_key[10].y + m_key[10].h / 2, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
    // Enter
-   SDLUtils::renderTexture(m_texEnter, m_keyboard.x + m_key[20].x + m_key[20].w / 2, m_keyboard.y + m_key[20].y + m_key[20].h / 2, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderTexture(m_config, m_texEnter, m_keyboard.x + m_key[20].x + m_key[20].w / 2, m_keyboard.y + m_key[20].y + m_key[20].h / 2, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
    // Shift
-   SDLUtils::renderTexture(m_keyLabelCurrent == 1 ? m_texShiftFull : m_texShiftEmpty, m_keyboard.x + m_key[21].x + m_key[21].w / 2, m_keyboard.y + m_key[21].y + m_key[21].h / 2, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
-   SDLUtils::renderTexture(m_keyLabelCurrent == 1 ? m_texShiftFull : m_texShiftEmpty, m_keyboard.x + m_key[31].x + m_key[31].w / 2, m_keyboard.y + m_key[31].y + m_key[31].h / 2, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderTexture(m_config, m_keyLabelCurrent == 1 ? m_texShiftFull : m_texShiftEmpty, m_keyboard.x + m_key[21].x + m_key[21].w / 2, m_keyboard.y + m_key[21].y + m_key[21].h / 2, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderTexture(m_config, m_keyLabelCurrent == 1 ? m_texShiftFull : m_texShiftEmpty, m_keyboard.x + m_key[31].x + m_key[31].w / 2, m_keyboard.y + m_key[31].y + m_key[31].h / 2, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
    // Arrows
-   SDLUtils::renderTexture(m_texArrow, m_keyboard.x + m_key[34].x + m_key[34].w / 2, m_keyboard.y + m_key[34].y + m_key[34].h / 2, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
-   SDLUtils::renderTexture(m_texArrow, m_keyboard.x + m_key[35].x + m_key[35].w / 2, m_keyboard.y + m_key[35].y + m_key[35].h / 2, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE, SDL_FLIP_HORIZONTAL);
+   SDLUtils::renderTexture(m_config, m_texArrow, m_keyboard.x + m_key[34].x + m_key[34].w / 2, m_keyboard.y + m_key[34].y + m_key[34].h / 2, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderTexture(m_config, m_texArrow, m_keyboard.x + m_key[35].x + m_key[35].w / 2, m_keyboard.y + m_key[35].y + m_key[35].h / 2, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE, SDL_FLIP_HORIZONTAL);
    // Number / symbols
-   SDLUtils::renderText(m_keyLabelCurrent == 3 ? "abc" : "&123", g_font, m_keyboard.x + m_key[32].x + m_key[32].w / 2, m_keyboard.y + m_key[32].y + m_key[32].h / 2, {COLOR_TEXT_NORMAL}, getBackgroundColor(32, p_focus), SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderText(m_config, m_keyLabelCurrent == 3 ? "abc" : "&123", m_config->font, m_keyboard.x + m_key[32].x + m_key[32].w / 2, m_keyboard.y + m_key[32].y + m_key[32].h / 2, {COLOR_TEXT_NORMAL}, getBackgroundColor(32, p_focus), SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
 }
 
 //------------------------------------------------------------------------------
@@ -253,23 +253,23 @@ void Keyboard::init(void)
    }
 
    // Create background image
-   m_background = SDL_CreateTexture(g_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, m_keyboard.w, m_keyboard.h);
-   SDL_SetRenderTarget(g_renderer, m_background);
-   SDL_SetRenderDrawColor(g_renderer, COLOR_TITLE_BG, 255);
-   SDL_RenderClear(g_renderer);
+   m_background = SDL_CreateTexture(m_config->renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, m_keyboard.w, m_keyboard.h);
+   SDL_SetRenderTarget(m_config->renderer, m_background);
+   SDL_SetRenderDrawColor(m_config->renderer, COLOR_TITLE_BG, 255);
+   SDL_RenderClear(m_config->renderer);
 
    // Draw keys
    for (indKey = 0; indKey < 36; ++indKey)
    {
       if (indKey == 10 || indKey == 20 || indKey == 21 || indKey == 31 || indKey == 32 || indKey == 34 || indKey == 35)
-         SDL_SetRenderDrawColor(g_renderer, COLOR_KEYBOARD_DARK, 255);
+         SDL_SetRenderDrawColor(m_config->renderer, COLOR_KEYBOARD_DARK, 255);
       else
-         SDL_SetRenderDrawColor(g_renderer, COLOR_BODY_BG, 255);
-      SDL_RenderFillRect(g_renderer, &m_key[indKey]);
+         SDL_SetRenderDrawColor(m_config->renderer, COLOR_BODY_BG, 255);
+      SDL_RenderFillRect(m_config->renderer, &m_key[indKey]);
    }
 
    // Restore renderer
-   SDL_SetRenderTarget(g_renderer, NULL);
+   SDL_SetRenderTarget(m_config->renderer, NULL);
 }
 
 //------------------------------------------------------------------------------

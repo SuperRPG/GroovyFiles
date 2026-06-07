@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include "sdlutils.h"
 
 namespace FileUtils
 {
@@ -11,18 +12,20 @@ namespace FileUtils
    // File operations
 //------------------------------------------------------------------------------
 
+   enum class FileOperation {foCopy, foMove};
+
    // Copy or move a list of files to dest dir.
    // p_action: 'c' = copy, 'm' = move.
-   void copyOrMoveFiles(const char p_action, const std::vector<std::string> &p_src, const std::string &p_dest);
+   void copyOrMoveFiles(config_t* config, const FileOperation operation, const std::vector<std::string> &p_src, const std::string &p_dest);
 
    // Remove files
-   void removeFiles(const std::vector<std::string> &p_files);
+   void removeFiles(config_t* config, const std::vector<std::string> &p_files);
 
    // Create new directory
    void makeDirectory(const std::string &p_file);
 
    // Rename a file
-   void renameFile(const std::string &p_file1, const std::string &p_file2);
+   void renameFile(config_t* config, const std::string &p_file1, const std::string &p_file2);
 
 //------------------------------------------------------------------------------
    // File utilities

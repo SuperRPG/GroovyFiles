@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <SDL.h>
+#include "def.h"
 #include "window.h"
 
 class Dialog : public IWindow
@@ -11,7 +12,7 @@ class Dialog : public IWindow
    public:
 
    // Constructor
-   Dialog(const std::string &p_title);
+   Dialog(config_t* config, const std::string &p_title);
 
    // Destructor
    virtual ~Dialog(void);

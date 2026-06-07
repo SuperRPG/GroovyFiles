@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include <string>
 #include "window.h"
+#include "def.h"
 
 class Keyboard : public IWindow
 {
@@ -11,7 +12,7 @@ class Keyboard : public IWindow
    public:
 
    // Constructor
-   Keyboard(IWindow *p_parent, const bool p_quitOnEnter);
+   Keyboard(config_t* config, IWindow *p_parent, const bool p_quitOnEnter);
 
    // Destructor
    virtual ~Keyboard(void);

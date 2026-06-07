@@ -2,7 +2,7 @@
 #include <fstream>
 #include <algorithm>
 #include "textViewer.h"
-#include "def.h"
+// #include "def.h"
 #include "sdlutils.h"
 
 namespace {
@@ -39,8 +39,8 @@ void ReplaceTabs(std::string *line) {
 //------------------------------------------------------------------------------
 
 // Constructor
-TextViewer::TextViewer(const std::string &p_title):
-   IWindow(true, p_title)
+TextViewer::TextViewer(config_t* config, const std::string &p_title):
+   IWindow(config, true, p_title)
 {
    // Read file
    std::ifstream ifs(p_title);
@@ -63,7 +63,7 @@ TextViewer::TextViewer(const std::string &p_title):
    // Init scrollbar
    adjustScrollbar();
    // Number of visible chars
-   m_nbVisibleChars = round(static_cast<double>(SCREEN_WIDTH - 2*MARGIN_X - m_scrollbar.w) / g_charW);
+   m_nbVisibleChars = round(static_cast<double>(SCREEN_WIDTH - 2*MARGIN_X - m_scrollbar.w) / m_config->char_width);
 }
 
 //------------------------------------------------------------------------------
@@ -79,26 +79,26 @@ TextViewer::~TextViewer(void)
 void TextViewer::render(const bool p_focus)
 {
    // Clear screen
-   SDL_SetRenderDrawColor(g_renderer, COLOR_BODY_BG, 255);
-   SDL_RenderClear(g_renderer);
+   SDL_SetRenderDrawColor(m_config->renderer, COLOR_BODY_BG, 255);
+   SDL_RenderClear(m_config->renderer);
 
    // Render title background
-   SDL_SetRenderDrawColor(g_renderer, COLOR_TITLE_BG, 255);
+   SDL_SetRenderDrawColor(m_config->renderer, COLOR_TITLE_BG, 255);
    SDL_Rect rect { 0, 0, SCREEN_WIDTH, LINE_HEIGHT };
-   SDL_RenderFillRect(g_renderer, &rect);
+   SDL_RenderFillRect(m_config->renderer, &rect);
 
    // Render title
    int l_y = LINE_HEIGHT / 2;
-   SDLUtils::renderTexture(g_iconFileText, MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
-   SDLUtils::renderText(m_title, g_font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, {COLOR_TEXT_NORMAL}, {COLOR_TITLE_BG}, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderTexture(m_config, m_config->findTexture("file-text"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderText(m_config, m_title, m_config->font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, {COLOR_TEXT_NORMAL}, {COLOR_TITLE_BG}, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
 
    // Render scrollbar
    if (p_focus)
-      SDL_SetRenderDrawColor(g_renderer, COLOR_CURSOR_FOCUS, 255);
+      SDL_SetRenderDrawColor(m_config->renderer, COLOR_CURSOR_FOCUS, 255);
    else
-      SDL_SetRenderDrawColor(g_renderer, COLOR_CURSOR_NO_FOCUS, 255);
+      SDL_SetRenderDrawColor(m_config->renderer, COLOR_CURSOR_NO_FOCUS, 255);
    if (m_scrollbar.h > 0)
-      SDL_RenderFillRect(g_renderer, &m_scrollbar);
+      SDL_RenderFillRect(m_config->renderer, &m_scrollbar);
 
    // Render lines
    l_y += LINE_HEIGHT;
@@ -106,7 +106,7 @@ void TextViewer::render(const bool p_focus)
    SDL_Color l_bgColor = {COLOR_BODY_BG};
    for (int l_i = m_camera.y; l_i < m_camera.y + m_nbVisibleLines && l_i < m_nbItems; ++l_i, l_y += LINE_HEIGHT)
       if (m_camera.x < static_cast<int>(m_lines[l_i].size()))
-         SDLUtils::renderText(m_lines[l_i].substr(m_camera.x, m_nbVisibleChars), g_fontMono, MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderText(m_config, m_lines[l_i].substr(m_camera.x, m_nbVisibleChars), m_config->monoFont, MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
 }
 
 //------------------------------------------------------------------------------

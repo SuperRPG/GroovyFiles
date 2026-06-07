@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug 351Files (WSL)",
+            "type": "cppdbg",
+            "request": "launch",
+            // Aponta para o target do seu Makefile
+            "program": "${workspaceFolder}/351Files", 
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            // Garante que o VS Code vai rodar o 'make' antes de iniciar
+            "preLaunchTask": "build-make", 
+            "miDebuggerPath": "/usr/bin/gdb"
+        }
+    ]
+}
+
+}

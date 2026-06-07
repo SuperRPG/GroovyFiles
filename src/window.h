@@ -3,6 +3,7 @@
 
 #include <string>
 #include <SDL.h>
+#include "sdlutils.h"
 
 // Buttons with timer
 enum {
@@ -22,7 +23,7 @@ class IWindow
    public:
 
    // Constructor
-   IWindow(const bool p_fullscreen, const std::string &p_title);
+   IWindow(config_t* config, const bool p_fullscreen, const std::string &p_title);
 
    // Destructor
    virtual ~IWindow(void);
@@ -34,8 +35,8 @@ class IWindow
    virtual void render(const bool p_focus) = 0;
 
    // Render all windows
-   static void renderAll(void);
-   static void renderPresent(void);
+   /*static*/ void renderAll(void);
+   /*static*/ void renderPresent(void);
 
    // Is window full screen?
    bool isFullScreen(void) const;
@@ -104,6 +105,8 @@ class IWindow
 
    // Vertical scrollbar
    SDL_Rect m_scrollbar;
+
+   config_t* m_config;
 
    private:
 

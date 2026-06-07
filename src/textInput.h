@@ -4,13 +4,14 @@
 #include <string>
 #include <SDL.h>
 #include "window.h"
+#include "def.h"
 
 class TextInput : public IWindow
 {
    public:
 
    // Constructor
-   TextInput(const std::string &p_title, SDL_Texture *p_icon, const std::string p_inputText = "");
+   TextInput(config_t* config, const std::string &p_title, SDL_Texture *p_icon, const std::string p_inputText = "");
 
    // Destructor
    virtual ~TextInput(void);

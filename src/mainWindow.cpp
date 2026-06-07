@@ -2,7 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <climits>
-#include "def.h"
+// #include "def.h"
 #include "sdlutils.h"
 #include "fileUtils.h"
 #include "dialog.h"
@@ -19,8 +19,8 @@ MainWindow::~MainWindow(void)
 //------------------------------------------------------------------------------
 
 // Constructor
-MainWindow::MainWindow(const std::string &p_title):
-   IWindow(true, p_title),
+MainWindow::MainWindow(config_t* config, const std::string &p_title):
+   IWindow(config, true, p_title),
    m_scrollFileNameActive(false),
    m_scrollFileNameX(0),
    m_scrollFileNameTimer(0),
@@ -46,33 +46,33 @@ MainWindow::MainWindow(const std::string &p_title):
 void MainWindow::render(const bool p_focus)
 {
    // Clear screen
-   SDL_SetRenderDrawColor(g_renderer, COLOR_BODY_BG, 255);
-   SDL_RenderClear(g_renderer);
+   SDL_SetRenderDrawColor(m_config->renderer, COLOR_BODY_BG, 255);
+   SDL_RenderClear(m_config->renderer);
 
    // Render title background
-   SDL_SetRenderDrawColor(g_renderer, COLOR_TITLE_BG, 255);
+   SDL_SetRenderDrawColor(m_config->renderer, COLOR_TITLE_BG, 255);
    SDL_Rect rect { 0, 0, SCREEN_WIDTH, LINE_HEIGHT };
-   SDL_RenderFillRect(g_renderer, &rect);
+   SDL_RenderFillRect(m_config->renderer, &rect);
 
    // Render title
    int l_y = LINE_HEIGHT / 2;
-   SDLUtils::renderTexture(g_iconFloppy, MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
-   SDLUtils::renderText(m_title, g_font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, {COLOR_TEXT_NORMAL}, {COLOR_TITLE_BG}, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderTexture(m_config, m_config->findTexture("floppy"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderText(m_config, m_title, m_config->font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, {COLOR_TEXT_NORMAL}, {COLOR_TITLE_BG}, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
 
    // Render cursor
    if (p_focus)
-      SDL_SetRenderDrawColor(g_renderer, COLOR_CURSOR_FOCUS, 255);
+      SDL_SetRenderDrawColor(m_config->renderer, COLOR_CURSOR_FOCUS, 255);
    else
-      SDL_SetRenderDrawColor(g_renderer, COLOR_CURSOR_NO_FOCUS, 255);
+      SDL_SetRenderDrawColor(m_config->renderer, COLOR_CURSOR_NO_FOCUS, 255);
    rect.x = 0;
    rect.y = LINE_HEIGHT + (m_cursor - m_camera.y) * LINE_HEIGHT;
    rect.w = SCREEN_WIDTH - m_scrollbar.w;
    rect.h = LINE_HEIGHT;
-   SDL_RenderFillRect(g_renderer, &rect);
+   SDL_RenderFillRect(m_config->renderer, &rect);
 
    // Render scrollbar
    if (m_scrollbar.h > 0)
-      SDL_RenderFillRect(g_renderer, &m_scrollbar);
+      SDL_RenderFillRect(m_config->renderer, &m_scrollbar);
 
    // Render file list
    l_y += LINE_HEIGHT;
@@ -90,19 +90,19 @@ void MainWindow::render(const bool p_focus)
 
       // Icon
       if (m_fileLister[l_i].m_name == "..")
-         SDLUtils::renderTexture(g_iconUp, MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderTexture(m_config, m_config->findTexture("up"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
       else if (m_fileLister.isDirectory(l_i))
-         SDLUtils::renderTexture(g_iconDir, MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderTexture(m_config, m_config->findTexture("folder"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
       else if (ImageViewer::extensionIsSupported(m_fileLister[l_i].m_ext))
-         SDLUtils::renderTexture(g_iconImage, MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderTexture(m_config, m_config->findTexture("image"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
       else
-         SDLUtils::renderTexture(g_iconFile, MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderTexture(m_config, m_config->findTexture("file"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
 
       // File size
       if (m_fileLister[l_i].m_size == ULLONG_MAX)
          sizeW = 0;
       else
-         sizeW = SDLUtils::renderText(FileUtils::formatSize(m_fileLister[l_i].m_size), g_font, SCREEN_WIDTH - m_scrollbar.w - MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_RIGHT, SDLUtils::T_ALIGN_MIDDLE);
+         sizeW = SDLUtils::renderText(m_config, FileUtils::formatSize(m_fileLister[l_i].m_size), m_config->font, SCREEN_WIDTH - m_scrollbar.w - MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_RIGHT, SDLUtils::T_ALIGN_MIDDLE);
 
       // File name
       fileNameMaxWidth = SCREEN_WIDTH - 4 * MARGIN_X - ICON_SIZE - m_scrollbar.w - sizeW;
@@ -111,7 +111,7 @@ void MainWindow::render(const bool p_focus)
          if (m_scrollFileNameActive)
          {
             // Render file name with scrolling
-            fileNameTextureWidth = SDLUtils::renderTextScrolling(m_fileLister[l_i].m_name, g_font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE, fileNameMaxWidth, m_scrollFileNameX);
+            fileNameTextureWidth = SDLUtils::renderTextScrolling(m_config, m_fileLister[l_i].m_name, m_config->font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE, fileNameMaxWidth, m_scrollFileNameX);
             --m_scrollFileNameTimer;
             if (m_scrollFileNameTimer <= 0)
             {
@@ -137,7 +137,7 @@ void MainWindow::render(const bool p_focus)
          }
          else
          {
-            fileNameTextureWidth = SDLUtils::renderText(m_fileLister[l_i].m_name, g_font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE, fileNameMaxWidth);
+            fileNameTextureWidth = SDLUtils::renderText(m_config, m_fileLister[l_i].m_name, m_config->font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE, fileNameMaxWidth);
             // Activate scrolling if file name is too long
             if (! m_scrollFileNameActive && fileNameTextureWidth > fileNameMaxWidth)
             {
@@ -151,7 +151,7 @@ void MainWindow::render(const bool p_focus)
       }
       else
       {
-         SDLUtils::renderText(m_fileLister[l_i].m_name, g_font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE, fileNameMaxWidth);
+         SDLUtils::renderText(m_config, m_fileLister[l_i].m_name, m_config->font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE, fileNameMaxWidth);
       }
 
       // Next line
@@ -288,7 +288,7 @@ void MainWindow::openHighlightedFile(void)
    // Case: file is a supported image
    if (ImageViewer::extensionIsSupported(m_fileLister[m_cursor].m_ext))
    {
-      ImageViewer imageViewer(m_title, &m_fileLister, m_cursor);
+      ImageViewer imageViewer(m_config, m_title, &m_fileLister, m_cursor);
       imageViewer.execute();
       return;
    }
@@ -301,10 +301,10 @@ void MainWindow::openHighlightedFile(void)
    // Dialog 'view as text' / 'edit as text'
    int action = -1;
    {
-      Dialog l_dialog("Open:");
-      l_dialog.addOption("View as text", 0, g_iconFileText);
-      l_dialog.addOption("Edit as text", 1, g_iconEdit);
-      l_dialog.addOption("Cancel", 2, g_iconCancel);
+      Dialog l_dialog(m_config, "Open:");
+      l_dialog.addOption("View as text", 0, m_config->findTexture("cancel"));
+      l_dialog.addOption("Edit as text", 1, m_config->findTexture("edit"));
+      l_dialog.addOption("Cancel", 2, m_config->findTexture("cancel"));
       action = l_dialog.execute();
    }
    if (action != 0 && action != 1)
@@ -313,10 +313,10 @@ void MainWindow::openHighlightedFile(void)
    // If the file is > 1M, ask for confirmation
    if (m_fileLister[m_cursor].m_size > 1024 * 1024)
    {
-      Dialog l_dialog("Question:");
+      Dialog l_dialog(m_config, "Question:");
       l_dialog.addLabel("The file is big. Open anyway?");
-      l_dialog.addOption("Yes", 0, g_iconSelect);
-      l_dialog.addOption("No", 1, g_iconCancel);
+      l_dialog.addOption("Yes", 0, m_config->findTexture("select"));
+      l_dialog.addOption("No", 1, m_config->findTexture("cancel"));
       if (l_dialog.execute() != 0)
          return;
    }
@@ -324,13 +324,13 @@ void MainWindow::openHighlightedFile(void)
    // View file as text
    if (action == 0)
    {
-      TextViewer textViewer(filePath);
+      TextViewer textViewer(m_config, filePath);
       textViewer.execute();
    }
    // Edit file as text
    else
    {
-      TextEditor textEditor(filePath);
+      TextEditor textEditor(m_config, filePath);
       textEditor.execute();
       refresh();
    }
@@ -371,24 +371,24 @@ void MainWindow::openContextMenu(void)
    {
       std::ostringstream oss;
       oss << nbSelected << " selected";
-      Dialog l_dialog (oss.str());
+      Dialog l_dialog (m_config, oss.str());
       if (nbSelected > 0)
       {
-         l_dialog.addOption("Copy", 0, g_iconCopy);
-         l_dialog.addOption("Cut", 1, g_iconCut);
+         l_dialog.addOption("Copy", 0, m_config->findTexture("edit-copy"));
+         l_dialog.addOption("Cut", 1, m_config->findTexture("edit-cut"));
       }
       if (m_clipboard.size() > 0)
-         l_dialog.addOption("Paste", 2, g_iconPaste);
+         l_dialog.addOption("Paste", 2, m_config->findTexture("edit-paste"));
       if (nbSelected > 0)
-         l_dialog.addOption("Delete", 3, g_iconTrash);
+         l_dialog.addOption("Delete", 3, m_config->findTexture("trash"));
       if (nbSelected == 1)
-         l_dialog.addOption("Rename", 9, g_iconEdit);
+         l_dialog.addOption("Rename", 9, m_config->findTexture("edit"));
       if (m_fileLister.getNbSelected('d') > 0)
-         l_dialog.addOption("Size", 4, g_iconDisk);
-      l_dialog.addOption("Select all", 5, g_iconSelect);
-      l_dialog.addOption("Select none", 6, g_iconNone);
-      l_dialog.addOption("New directory", 7, g_iconNewDir);
-      l_dialog.addOption("Quit", 8, g_iconQuit);
+         l_dialog.addOption("Size", 4, m_config->findTexture("disk"));
+      l_dialog.addOption("Select all", 5, m_config->findTexture("select"));
+      l_dialog.addOption("Select none", 6, m_config->findTexture("none"));
+      l_dialog.addOption("New directory", 7, m_config->findTexture("folder-new"));
+      l_dialog.addOption("Quit", 8, m_config->findTexture("quit"));
       result = l_dialog.execute();
    }
    switch(result)
@@ -396,24 +396,24 @@ void MainWindow::openContextMenu(void)
       // Copy
       case 0:
          m_fileLister.getSelectList(m_title, m_clipboard);
-         m_clipboardOperation = 'c';
+         m_clipboardOperation = FileUtils::FileOperation::foCopy;
          INHIBIT(std::cout << m_clipboard.size() << " added to clipboard for copy\n";)
          break;
       // Move
       case 1:
          m_fileLister.getSelectList(m_title, m_clipboard);
-         m_clipboardOperation = 'm';
+         m_clipboardOperation = FileUtils::FileOperation::foMove;
          INHIBIT(std::cout << m_clipboard.size() << " added to clipboard for move\n";)
          break;
       // Paste
       case 2:
-         FileUtils::copyOrMoveFiles(m_clipboardOperation, m_clipboard, m_title);
+         FileUtils::copyOrMoveFiles(m_config, m_clipboardOperation, m_clipboard, m_title);
          refresh();
          break;
       // Delete
       case 3:
          m_fileLister.getSelectList(m_title, m_clipboard);
-         FileUtils::removeFiles(m_clipboard);
+         FileUtils::removeFiles(m_config, m_clipboard);
          m_clipboard.clear();
          refresh();
          break;
@@ -421,7 +421,7 @@ void MainWindow::openContextMenu(void)
       case 4:
       {
          // Display a "please wait" message
-         Dialog dialogPleaseWait("Info");
+         Dialog dialogPleaseWait(m_config, "Info");
          dialogPleaseWait.addLabel("Please wait...");
          dialogPleaseWait.render(true);
          IWindow::renderPresent();
@@ -447,7 +447,7 @@ void MainWindow::openContextMenu(void)
       // New directory
       case 7:
       {
-         TextInput textInput("New directory", g_iconNewDir);
+         TextInput textInput(m_config, "New directory", m_config->findTexture("folder-new"));
          if (textInput.execute() != -2 && ! textInput.getInputText().empty())
          {
             FileUtils::makeDirectory(m_title + (m_title == "/" ? "" : "/") + textInput.getInputText());
@@ -459,10 +459,10 @@ void MainWindow::openContextMenu(void)
       case 9:
       {
          std::string fileSrc = m_fileLister.getSelectFirst();
-         TextInput textInput("Rename", g_iconEdit, fileSrc);
+         TextInput textInput(m_config, "Rename", m_config->findTexture("edit"), fileSrc);
          if (textInput.execute() != -2 && ! textInput.getInputText().empty())
          {
-            FileUtils::renameFile(m_title + (m_title == "/" ? "" : "/") + fileSrc, m_title + (m_title == "/" ? "" : "/") + textInput.getInputText());
+            FileUtils::renameFile(m_config, m_title + (m_title == "/" ? "" : "/") + fileSrc, m_title + (m_title == "/" ? "" : "/") + textInput.getInputText());
             refresh();
          }
       }

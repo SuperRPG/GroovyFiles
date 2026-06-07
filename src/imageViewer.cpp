@@ -1,5 +1,5 @@
 #include "imageViewer.h"
-#include "def.h"
+// #include "def.h"
 #include "sdlutils.h"
 
 //------------------------------------------------------------------------------
@@ -13,8 +13,8 @@ bool ImageViewer::extensionIsSupported(const std::string &p_ext)
 //------------------------------------------------------------------------------
 
 // Constructor
-ImageViewer::ImageViewer(const std::string &p_dir, CFileLister *p_fileLister, const int p_fileIndex):
-   IWindow(true, ""),
+ImageViewer::ImageViewer(config_t* config, const std::string &p_dir, CFileLister *p_fileLister, const int p_fileIndex):
+   IWindow(config, true, ""),
    m_image(NULL),
    m_imageW(0),
    m_imageH(0),
@@ -52,7 +52,7 @@ void ImageViewer::loadImage(const int p_fileIndex)
    // Load new image
    m_fileIndex = p_fileIndex;
    m_title = m_dir + (m_dir == "/" ? "" : "/") + (*m_fileLister)[m_fileIndex].m_name;
-   m_image = SDLUtils::loadTexture(m_title);
+   m_image = SDLUtils::loadTexture(m_config, m_title);
    if (m_image != NULL)
       SDL_QueryTexture(m_image, NULL, NULL, &m_imageW, &m_imageH);
 }
@@ -63,8 +63,8 @@ void ImageViewer::loadImage(const int p_fileIndex)
 void ImageViewer::render(const bool p_focus)
 {
    // Clear screen
-   SDL_SetRenderDrawColor(g_renderer, COLOR_BODY_BG, 255);
-   SDL_RenderClear(g_renderer);
+   SDL_SetRenderDrawColor(m_config->renderer, COLOR_BODY_BG, 255);
+   SDL_RenderClear(m_config->renderer);
 
    // Display image
    if (m_image != NULL)
@@ -82,28 +82,28 @@ void ImageViewer::render(const bool p_focus)
          int imageFitW = static_cast<double>(m_imageW) / resizeFactor;
          int imageFitH = static_cast<double>(m_imageH) / resizeFactor;
          SDL_Rect destRect = { (SCREEN_WIDTH - imageFitW) / 2, LINE_HEIGHT + ((SCREEN_HEIGHT - LINE_HEIGHT - imageFitH) / 2), imageFitW, imageFitH };
-         SDL_RenderCopy(g_renderer, m_image, NULL, &destRect);
+         SDL_RenderCopy(m_config->renderer, m_image, NULL, &destRect);
       }
       else
       {
          // Display image as it is
-         SDLUtils::renderTexture(m_image, (m_imageW > SCREEN_WIDTH ? m_camera.x : 0) + (SCREEN_WIDTH / 2), (m_imageH > SCREEN_HEIGHT - LINE_HEIGHT ? m_camera.y : 0) + ((SCREEN_HEIGHT + LINE_HEIGHT) / 2), SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderTexture(m_config, m_image, (m_imageW > SCREEN_WIDTH ? m_camera.x : 0) + (SCREEN_WIDTH / 2), (m_imageH > SCREEN_HEIGHT - LINE_HEIGHT ? m_camera.y : 0) + ((SCREEN_HEIGHT + LINE_HEIGHT) / 2), SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
       }
    }
    else
    {
       // Error
-      SDLUtils::renderText("Unable to load image", g_font, SCREEN_WIDTH / 2, (SCREEN_HEIGHT + LINE_HEIGHT) / 2, {COLOR_TEXT_NORMAL}, {COLOR_BODY_BG}, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
+      SDLUtils::renderText(m_config, "Unable to load image", m_config->font, SCREEN_WIDTH / 2, (SCREEN_HEIGHT + LINE_HEIGHT) / 2, {COLOR_TEXT_NORMAL}, {COLOR_BODY_BG}, SDLUtils::T_ALIGN_CENTER, SDLUtils::T_ALIGN_MIDDLE);
    }
 
    // Render title background
-   SDL_SetRenderDrawColor(g_renderer, COLOR_TITLE_BG, 255);
+   SDL_SetRenderDrawColor(m_config->renderer, COLOR_TITLE_BG, 255);
    SDL_Rect rect { 0, 0, SCREEN_WIDTH, LINE_HEIGHT };
-   SDL_RenderFillRect(g_renderer, &rect);
+   SDL_RenderFillRect(m_config->renderer, &rect);
 
    // Render title
-   SDLUtils::renderTexture(g_iconImage, MARGIN_X, LINE_HEIGHT / 2, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
-   SDLUtils::renderText(m_title, g_font, MARGIN_X + ICON_SIZE + MARGIN_X, LINE_HEIGHT / 2, {COLOR_TEXT_NORMAL}, {COLOR_TITLE_BG}, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderTexture(m_config, m_config->findTexture("image"), MARGIN_X, LINE_HEIGHT / 2, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderText(m_config, m_title, m_config->font, MARGIN_X + ICON_SIZE + MARGIN_X, LINE_HEIGHT / 2, {COLOR_TEXT_NORMAL}, {COLOR_TITLE_BG}, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
 }
 
 //------------------------------------------------------------------------------

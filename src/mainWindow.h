@@ -5,6 +5,7 @@
 #include <SDL.h>
 #include "window.h"
 #include "fileLister.h"
+#include "def.h"
 
 class MainWindow : public IWindow
 {
@@ -15,7 +16,7 @@ class MainWindow : public IWindow
    virtual ~MainWindow(void);
 
    // Constructor
-   MainWindow(const std::string &p_title);
+   MainWindow(config_t* config, const std::string &p_title);
 
    // Draw window
    virtual void render(const bool p_focus);
@@ -55,7 +56,7 @@ class MainWindow : public IWindow
    // Clipboard containing full path of files, for copying or moving
    // Operation: 'c' = copy, 'm' = move
    std::vector<std::string> m_clipboard;
-   char m_clipboardOperation;
+   FileUtils::FileOperation m_clipboardOperation;
 
    // Scrolling long file names
    bool m_scrollFileNameActive;

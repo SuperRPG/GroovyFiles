@@ -5,13 +5,14 @@
 #include <SDL.h>
 #include "window.h"
 #include "fileLister.h"
+#include "def.h"
 
 class ImageViewer : public IWindow
 {
    public:
 
    // Constructor
-   ImageViewer(const std::string &p_dir, CFileLister *p_fileLister, const int p_fileIndex);
+   ImageViewer(config_t* config, const std::string &p_dir, CFileLister *p_fileLister, const int p_fileIndex);
 
    // Destructor
    virtual ~ImageViewer(void);

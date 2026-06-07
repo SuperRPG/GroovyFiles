@@ -10,7 +10,7 @@
 #include <signal.h>
 #endif
 #include "fileUtils.h"
-#include "def.h"
+//#include "def.h"
 #include "dialog.h"
 
 namespace FileUtils
@@ -182,7 +182,7 @@ std::string FileUtils::getRootName(const std::string &p_path)
 //------------------------------------------------------------------------------
 
 // Copy files to dest dir
-void FileUtils::copyOrMoveFiles(const char p_action, const std::vector<std::string> &p_src, const std::string &p_dest)
+void FileUtils::copyOrMoveFiles(config_t* config, const FileOperation operation, const std::vector<std::string> &p_src, const std::string &p_dest)
 {
    std::string l_destFile;
    std::string l_fileName;
@@ -199,13 +199,15 @@ void FileUtils::copyOrMoveFiles(const char p_action, const std::vector<std::stri
       if (*l_it == l_destFile)
       {
          // Copy => duplicate 'file.ext' as 'file_copy.ext'
-         if (p_action == 'c')
+         //if (p_action == 'c')
+         if (operation == FileOperation::foCopy)
          {
             std::string ext = getFileExtension(l_destFile);
             l_destFile = getRootName(l_destFile) + "_copy" + (ext.empty() ? "" : ".")  + ext;
          }
          // Move => do nothing
-         else if (p_action == 'm')
+         //else if (p_action == 'm')
+         else if (operation == FileOperation::foMove)
          {
             continue;
          }
@@ -221,13 +223,13 @@ void FileUtils::copyOrMoveFiles(const char p_action, const std::vector<std::stri
          if (!l_yesToAll)
          {
             // Ask for confirmation
-            Dialog l_dialog("Question:");
+            Dialog l_dialog(config, "Question:");
             l_dialog.addLabel("Overwrite " + getFileName(l_destFile) + "?");
-            l_dialog.addOption("Yes", 0, g_iconSelect);
-            l_dialog.addOption("Yes to all", 1, g_iconSelect);
-            l_dialog.addOption("No", 2, g_iconNone);
-            l_dialog.addOption("No to all", 3, g_iconNone);
-            l_dialog.addOption("Cancel", 4, g_iconCancel);
+            l_dialog.addOption("Yes", 0, config->findTexture("select"));
+            l_dialog.addOption("Yes to all", 1, config->findTexture("select"));
+            l_dialog.addOption("No", 2, config->findTexture("none"));
+            l_dialog.addOption("No to all", 3, config->findTexture("none"));
+            l_dialog.addOption("Cancel", 4, config->findTexture("cancel"));
             switch (l_dialog.execute())
             {
                // Yes
@@ -247,13 +249,16 @@ void FileUtils::copyOrMoveFiles(const char p_action, const std::vector<std::stri
       // Execute command
       if (l_execute)
       {
-         switch(p_action)
+         //switch(p_action)
+         switch (operation)
          {
-            case 'c':
+            //case 'c':
+            case FileOperation::foCopy:            
                INHIBIT(std::cout << "Copy " << *l_it << " to " << l_destFile << "\n";)
                Run("cp", "-r", *l_it, l_destFile);
                break;
-            case 'm':
+            //case 'm':
+            case FileOperation::foMove:
                INHIBIT(std::cout << "Move " << *l_it << " to " << l_destFile << "\n";)
                Run("mv", *l_it, l_destFile);
                break;
@@ -268,15 +273,15 @@ void FileUtils::copyOrMoveFiles(const char p_action, const std::vector<std::stri
 //------------------------------------------------------------------------------
 
 // Remove files
-void FileUtils::removeFiles(const std::vector<std::string> &p_files)
+void FileUtils::removeFiles(config_t* config, const std::vector<std::string> &p_files)
 {
    // Confirmation
    std::ostringstream oss;
    oss << "Delete " << p_files.size() << " file(s)?";
-   Dialog l_dialog("Question:");
+   Dialog l_dialog(config, "Question:");
    l_dialog.addLabel(oss.str());
-   l_dialog.addOption("Yes", 0, g_iconSelect);
-   l_dialog.addOption("No", 1, g_iconCancel);
+   l_dialog.addOption("Yes", 0, config->findTexture("select"));
+   l_dialog.addOption("No", 1, config->findTexture("cancel"));
    if (l_dialog.execute() != 0)
       return;
    // Delete files
@@ -300,16 +305,16 @@ void FileUtils::makeDirectory(const std::string &p_file)
 //------------------------------------------------------------------------------
 
 // Rename a file
-void FileUtils::renameFile(const std::string &p_file1, const std::string &p_file2)
+void FileUtils::renameFile(config_t* config, const std::string &p_file1, const std::string &p_file2)
 {
    // Check if destination file already exists
    if (fileExists(p_file2))
    {
       INHIBIT(std::cout << "File " << p_file2 << " already exists => ask for confirmation\n";)
-      Dialog l_dialog("Question:");
+      Dialog l_dialog(config, "Question:");
       l_dialog.addLabel("Overwrite " + getFileName(p_file2) + "?");
-      l_dialog.addOption("Yes", 0, g_iconSelect);
-      l_dialog.addOption("No", 1, g_iconCancel);
+      l_dialog.addOption("Yes", 0, config->findTexture("select"));
+      l_dialog.addOption("No", 1, config->findTexture("cancel"));
       if (l_dialog.execute() != 0)
          return;
    }

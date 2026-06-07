@@ -5,13 +5,14 @@
 #include <vector>
 #include <SDL.h>
 #include "window.h"
+#include "def.h"
 
 class TextEditor : public IWindow
 {
    public:
 
    // Constructor
-   TextEditor(const std::string &p_title);
+   TextEditor(config_t* config, const std::string &p_title);
 
    // Destructor
    virtual ~TextEditor(void);

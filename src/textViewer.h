@@ -5,13 +5,14 @@
 #include <vector>
 #include <SDL.h>
 #include "window.h"
+#include "def.h"
 
 class TextViewer : public IWindow
 {
    public:
 
    // Constructor
-   TextViewer(const std::string &p_title);
+   TextViewer(config_t* config, const std::string &p_title);
 
    // Destructor
    virtual ~TextViewer(void);
