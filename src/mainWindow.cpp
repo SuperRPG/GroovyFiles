@@ -5,7 +5,7 @@
 // #include "def.h"
 #include "sdlutils.h"
 #include "fileUtils.h"
-#include "dialog.h"
+// #include "dialog.h"
 #include "textInput.h"
 #include "textViewer.h"
 #include "textEditor.h"
@@ -56,7 +56,7 @@ void MainWindow::render(const bool p_focus)
 
    // Render title
    int l_y = LINE_HEIGHT / 2;
-   SDLUtils::renderTexture(m_config, m_config->findTexture("floppy"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderTexture(m_config, findTexture("floppy"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
    SDLUtils::renderText(m_config, m_title, m_config->font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, {COLOR_TEXT_NORMAL}, {COLOR_TITLE_BG}, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
 
    // Render cursor
@@ -90,13 +90,13 @@ void MainWindow::render(const bool p_focus)
 
       // Icon
       if (m_fileLister[l_i].m_name == "..")
-         SDLUtils::renderTexture(m_config, m_config->findTexture("up"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderTexture(m_config, findTexture("up"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
       else if (m_fileLister.isDirectory(l_i))
-         SDLUtils::renderTexture(m_config, m_config->findTexture("folder"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderTexture(m_config, findTexture("folder"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
       else if (ImageViewer::extensionIsSupported(m_fileLister[l_i].m_ext))
-         SDLUtils::renderTexture(m_config, m_config->findTexture("image"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderTexture(m_config, findTexture("image"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
       else
-         SDLUtils::renderTexture(m_config, m_config->findTexture("file"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+         SDLUtils::renderTexture(m_config, findTexture("file"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
 
       // File size
       if (m_fileLister[l_i].m_size == ULLONG_MAX)
@@ -158,6 +158,16 @@ void MainWindow::render(const bool p_focus)
       l_y += LINE_HEIGHT;
    }
 
+}
+
+Dialog MainWindow::newDialog(const std::string &title)
+{
+    return Dialog(m_config, title);
+}
+
+SDL_Texture *MainWindow::findTexture(const std::string &name)
+{
+    return m_config->findTexture(name);
 }
 
 //------------------------------------------------------------------------------
@@ -301,10 +311,10 @@ void MainWindow::openHighlightedFile(void)
    // Dialog 'view as text' / 'edit as text'
    int action = -1;
    {
-      Dialog l_dialog(m_config, "Open:");
-      l_dialog.addOption("View as text", 0, m_config->findTexture("cancel"));
-      l_dialog.addOption("Edit as text", 1, m_config->findTexture("edit"));
-      l_dialog.addOption("Cancel", 2, m_config->findTexture("cancel"));
+      Dialog l_dialog = newDialog("Open:");
+      l_dialog.addOption("View as text", 0, findTexture("cancel"));
+      l_dialog.addOption("Edit as text", 1, findTexture("edit"));
+      l_dialog.addOption("Cancel", 2, findTexture("cancel"));
       action = l_dialog.execute();
    }
    if (action != 0 && action != 1)
@@ -313,10 +323,10 @@ void MainWindow::openHighlightedFile(void)
    // If the file is > 1M, ask for confirmation
    if (m_fileLister[m_cursor].m_size > 1024 * 1024)
    {
-      Dialog l_dialog(m_config, "Question:");
+      Dialog l_dialog = newDialog("Question:");
       l_dialog.addLabel("The file is big. Open anyway?");
-      l_dialog.addOption("Yes", 0, m_config->findTexture("select"));
-      l_dialog.addOption("No", 1, m_config->findTexture("cancel"));
+      l_dialog.addOption("Yes", 0, findTexture("select"));
+      l_dialog.addOption("No", 1, findTexture("cancel"));
       if (l_dialog.execute() != 0)
          return;
    }
@@ -371,24 +381,24 @@ void MainWindow::openContextMenu(void)
    {
       std::ostringstream oss;
       oss << nbSelected << " selected";
-      Dialog l_dialog (m_config, oss.str());
+      Dialog l_dialog = newDialog(oss.str());
       if (nbSelected > 0)
       {
-         l_dialog.addOption("Copy", 0, m_config->findTexture("edit-copy"));
-         l_dialog.addOption("Cut", 1, m_config->findTexture("edit-cut"));
+         l_dialog.addOption("Copy", 0, findTexture("edit-copy"));
+         l_dialog.addOption("Cut", 1, findTexture("edit-cut"));
       }
       if (m_clipboard.size() > 0)
-         l_dialog.addOption("Paste", 2, m_config->findTexture("edit-paste"));
+         l_dialog.addOption("Paste", 2, findTexture("edit-paste"));
       if (nbSelected > 0)
-         l_dialog.addOption("Delete", 3, m_config->findTexture("trash"));
+         l_dialog.addOption("Delete", 3, findTexture("trash"));
       if (nbSelected == 1)
-         l_dialog.addOption("Rename", 9, m_config->findTexture("edit"));
+         l_dialog.addOption("Rename", 9, findTexture("edit"));
       if (m_fileLister.getNbSelected('d') > 0)
-         l_dialog.addOption("Size", 4, m_config->findTexture("disk"));
-      l_dialog.addOption("Select all", 5, m_config->findTexture("select"));
-      l_dialog.addOption("Select none", 6, m_config->findTexture("none"));
-      l_dialog.addOption("New directory", 7, m_config->findTexture("folder-new"));
-      l_dialog.addOption("Quit", 8, m_config->findTexture("quit"));
+         l_dialog.addOption("Size", 4, findTexture("disk"));
+      l_dialog.addOption("Select all", 5, findTexture("select"));
+      l_dialog.addOption("Select none", 6, findTexture("none"));
+      l_dialog.addOption("New directory", 7, findTexture("folder-new"));
+      l_dialog.addOption("Quit", 8, findTexture("quit"));
       result = l_dialog.execute();
    }
    switch(result)
@@ -421,7 +431,7 @@ void MainWindow::openContextMenu(void)
       case 4:
       {
          // Display a "please wait" message
-         Dialog dialogPleaseWait(m_config, "Info");
+         Dialog dialogPleaseWait = newDialog("Info");
          dialogPleaseWait.addLabel("Please wait...");
          dialogPleaseWait.render(true);
          IWindow::renderPresent();
@@ -447,7 +457,7 @@ void MainWindow::openContextMenu(void)
       // New directory
       case 7:
       {
-         TextInput textInput(m_config, "New directory", m_config->findTexture("folder-new"));
+         TextInput textInput(m_config, "New directory", findTexture("folder-new"));
          if (textInput.execute() != -2 && ! textInput.getInputText().empty())
          {
             FileUtils::makeDirectory(m_title + (m_title == "/" ? "" : "/") + textInput.getInputText());
@@ -459,7 +469,7 @@ void MainWindow::openContextMenu(void)
       case 9:
       {
          std::string fileSrc = m_fileLister.getSelectFirst();
-         TextInput textInput(m_config, "Rename", m_config->findTexture("edit"), fileSrc);
+         TextInput textInput(m_config, "Rename", findTexture("edit"), fileSrc);
          if (textInput.execute() != -2 && ! textInput.getInputText().empty())
          {
             FileUtils::renameFile(m_config, m_title + (m_title == "/" ? "" : "/") + fileSrc, m_title + (m_title == "/" ? "" : "/") + textInput.getInputText());

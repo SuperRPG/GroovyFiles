@@ -3,15 +3,13 @@
 
 #include <string>
 #include <SDL.h>
-#include "window.h"
+#include "dialog.h"
 #include "fileLister.h"
 #include "def.h"
 
 class MainWindow : public IWindow
 {
-
-   public:
-
+public:
    // Destructor
    virtual ~MainWindow(void);
 
@@ -20,8 +18,10 @@ class MainWindow : public IWindow
 
    // Draw window
    virtual void render(const bool p_focus);
-
-   private:
+protected:
+   Dialog newDialog(const std::string& title);
+   SDL_Texture* findTexture(const std::string& name);
+private:
 
    // Forbidden
    MainWindow(const MainWindow &p_source);

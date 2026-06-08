@@ -9,8 +9,7 @@
 
 class Dialog : public IWindow
 {
-   public:
-
+public:
    // Constructor
    Dialog(config_t* config, const std::string &p_title);
 
@@ -26,8 +25,7 @@ class Dialog : public IWindow
    // Add a menu option
    void addOption(const std::string &p_option, const int p_retVal, SDL_Texture *p_icon = NULL);
 
-   private:
-
+private:
    // List of labels
    std::vector<std::string> m_labels;
    std::vector<SDL_Texture *> m_labelIcons;

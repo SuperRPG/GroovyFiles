@@ -20,8 +20,7 @@ enum {
 
 class IWindow
 {
-   public:
-
+public:
    // Constructor
    IWindow(config_t* config, const bool p_fullscreen, const std::string &p_title);
 
@@ -48,7 +47,7 @@ class IWindow
    virtual void keyboardMoveLeft(void) {};
    virtual void keyboardMoveRight(void) {};
 
-   protected:
+protected:
 
    // Move cursor
    virtual void moveCursorUp(const int p_step, bool p_loop);
@@ -108,7 +107,7 @@ class IWindow
 
    config_t* m_config;
 
-   private:
+private:
 
    // Forbidden
    IWindow(void);
