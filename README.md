@@ -1,8 +1,8 @@
-# 351Files
+# GroovyFiles
 A single panel file Manager tailored for Anbernic 351 devices: RG351V and RG351P. Can be easily adapted to any Linux-based device.
 
-Based on DinguxCommander.
-* Original page: https://tardigrade-nx.github.io/2011/dinguxcommander
+Based on 351Files.
+* Original page: https://github.com/Tardigrade-nx/351Files
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/Tardigrade-nx/351Files/master/screenshots/01.png" alt="Screenshot 1"><br /><br />
