@@ -76,6 +76,8 @@ public:
    SDL_Joystick* joystick;
    int char_width;
    std::vector<IWindow*> windows;
+   int hor_margin{ 0 };
+   int ver_margin{ 0 };
 private:   
    resources_t resources{};  
 };

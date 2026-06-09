@@ -45,19 +45,21 @@ MainWindow::MainWindow(config_t* config, const std::string &p_title):
 // Draw window
 void MainWindow::render(const bool p_focus)
 {
+   int margin_x = (10 + m_config->hor_margin);
+
    // Clear screen
    SDL_SetRenderDrawColor(m_config->renderer, COLOR_BODY_BG, 255);
    SDL_RenderClear(m_config->renderer);
 
    // Render title background
    SDL_SetRenderDrawColor(m_config->renderer, COLOR_TITLE_BG, 255);
-   SDL_Rect rect { 0, 0, SCREEN_WIDTH, LINE_HEIGHT };
+   SDL_Rect rect { 0, m_config->hor_margin, SCREEN_WIDTH, LINE_HEIGHT };   
    SDL_RenderFillRect(m_config->renderer, &rect);
 
    // Render title
-   int l_y = LINE_HEIGHT / 2;
-   SDLUtils::renderTexture(m_config, findTexture("floppy"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
-   SDLUtils::renderText(m_config, m_title, m_config->font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, {COLOR_TEXT_NORMAL}, {COLOR_TITLE_BG}, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+   int l_y = LINE_HEIGHT / 2 + m_config->hor_margin;
+   SDLUtils::renderTexture(m_config, findTexture("floppy"), margin_x, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+   SDLUtils::renderText(m_config, m_title, m_config->font, margin_x + ICON_SIZE + MARGIN_X, l_y, {COLOR_TEXT_NORMAL}, {COLOR_TITLE_BG}, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
 
    // Render cursor
    if (p_focus)
@@ -65,7 +67,7 @@ void MainWindow::render(const bool p_focus)
    else
       SDL_SetRenderDrawColor(m_config->renderer, COLOR_CURSOR_NO_FOCUS, 255);
    rect.x = 0;
-   rect.y = LINE_HEIGHT + (m_cursor - m_camera.y) * LINE_HEIGHT;
+   rect.y = LINE_HEIGHT + (m_cursor - m_camera.y) * LINE_HEIGHT + m_config->hor_margin;
    rect.w = SCREEN_WIDTH - m_scrollbar.w;
    rect.h = LINE_HEIGHT;
    SDL_RenderFillRect(m_config->renderer, &rect);
@@ -89,17 +91,15 @@ void MainWindow::render(const bool p_focus)
       l_bgColor = getBackgroundColor(l_i, p_focus);
 
       // Icon
-      std::string icon_name{};
+      std::string icon_name{ "file" };
       if (m_fileLister[l_i].m_name == "..")
          icon_name = "up";
       else if (m_fileLister.isDirectory(l_i))
          icon_name = "folder";
       else if (ImageViewer::extensionIsSupported(m_fileLister[l_i].m_ext))
          icon_name = "image";
-      else
-         icon_name = "file";
 
-      SDLUtils::renderTexture(m_config, findTexture(icon_name), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+      SDLUtils::renderTexture(m_config, findTexture(icon_name), margin_x, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
 /*
       if (m_fileLister[l_i].m_name == "..")
          SDLUtils::renderTexture(m_config, findTexture("up"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
@@ -115,16 +115,16 @@ void MainWindow::render(const bool p_focus)
       if (m_fileLister[l_i].m_size == ULLONG_MAX)
          sizeW = 0;
       else
-         sizeW = SDLUtils::renderText(m_config, FileUtils::formatSize(m_fileLister[l_i].m_size), m_config->font, SCREEN_WIDTH - m_scrollbar.w - MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_RIGHT, SDLUtils::T_ALIGN_MIDDLE);
+         sizeW = SDLUtils::renderText(m_config, FileUtils::formatSize(m_fileLister[l_i].m_size), m_config->font, SCREEN_WIDTH - m_scrollbar.w - MARGIN_X - m_config->hor_margin, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_RIGHT, SDLUtils::T_ALIGN_MIDDLE);
 
       // File name
-      fileNameMaxWidth = SCREEN_WIDTH - 4 * MARGIN_X - ICON_SIZE - m_scrollbar.w - sizeW;
+      fileNameMaxWidth = SCREEN_WIDTH - 4 * margin_x - ICON_SIZE - m_scrollbar.w - sizeW;
       if (m_cursor == l_i)
       {
          if (m_scrollFileNameActive)
          {
             // Render file name with scrolling
-            fileNameTextureWidth = SDLUtils::renderTextScrolling(m_config, m_fileLister[l_i].m_name, m_config->font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE, fileNameMaxWidth, m_scrollFileNameX);
+            fileNameTextureWidth = SDLUtils::renderTextScrolling(m_config, m_fileLister[l_i].m_name, m_config->font, margin_x + ICON_SIZE + margin_x, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE, fileNameMaxWidth, m_scrollFileNameX);
             --m_scrollFileNameTimer;
             if (m_scrollFileNameTimer <= 0)
             {
@@ -150,7 +150,7 @@ void MainWindow::render(const bool p_focus)
          }
          else
          {
-            fileNameTextureWidth = SDLUtils::renderText(m_config, m_fileLister[l_i].m_name, m_config->font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE, fileNameMaxWidth);
+            fileNameTextureWidth = SDLUtils::renderText(m_config, m_fileLister[l_i].m_name, m_config->font, margin_x + ICON_SIZE + MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE, fileNameMaxWidth);
             // Activate scrolling if file name is too long
             if (! m_scrollFileNameActive && fileNameTextureWidth > fileNameMaxWidth)
             {
@@ -164,7 +164,7 @@ void MainWindow::render(const bool p_focus)
       }
       else
       {
-         SDLUtils::renderText(m_config, m_fileLister[l_i].m_name, m_config->font, MARGIN_X + ICON_SIZE + MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE, fileNameMaxWidth);
+         SDLUtils::renderText(m_config, m_fileLister[l_i].m_name, m_config->font, margin_x + ICON_SIZE + MARGIN_X, l_y, l_fgColor, l_bgColor, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE, fileNameMaxWidth);
       }
 
       // Next line

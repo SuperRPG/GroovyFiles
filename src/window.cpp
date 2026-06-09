@@ -62,9 +62,27 @@ int IWindow::execute(void)
       l_time = SDL_GetTicks();
 
       // Handle events
-      while (SDL_PollEvent(&event) != 0 )
+      while (SDL_PollEvent(&event))
       {
          // Quit
+         switch (event.type)
+         {
+            case SDL_KEYDOWN:
+               switch (event.key.keysym.scancode)
+               {
+                  case SDL_SCANCODE_KP_PLUS:
+                     m_config->hor_margin += 1;
+                     g_hasChanged = true;
+                     break;
+
+                  case SDL_SCANCODE_KP_MINUS:
+                     m_config->hor_margin -= 1;
+                     g_hasChanged = true;
+                     break;
+               }
+               break;
+         }
+
          if (event.type == SDL_QUIT)
             return 0;
          // Move cursor
