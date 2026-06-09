@@ -2,11 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug 351Files (WSL)",
+            "name": "Debug GroovyFiles (WSL)",
             "type": "cppdbg",
             "request": "launch",
             // Aponta para o target do seu Makefile
-            "program": "${workspaceFolder}/351Files", 
+            "program": "${workspaceFolder}/GroovyFiles", 
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

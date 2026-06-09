@@ -89,6 +89,18 @@ void MainWindow::render(const bool p_focus)
       l_bgColor = getBackgroundColor(l_i, p_focus);
 
       // Icon
+      std::string icon_name{};
+      if (m_fileLister[l_i].m_name == "..")
+         icon_name = "up";
+      else if (m_fileLister.isDirectory(l_i))
+         icon_name = "folder";
+      else if (ImageViewer::extensionIsSupported(m_fileLister[l_i].m_ext))
+         icon_name = "image";
+      else
+         icon_name = "file";
+
+      SDLUtils::renderTexture(m_config, findTexture(icon_name), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+/*
       if (m_fileLister[l_i].m_name == "..")
          SDLUtils::renderTexture(m_config, findTexture("up"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
       else if (m_fileLister.isDirectory(l_i))
@@ -97,6 +109,7 @@ void MainWindow::render(const bool p_focus)
          SDLUtils::renderTexture(m_config, findTexture("image"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
       else
          SDLUtils::renderTexture(m_config, findTexture("file"), MARGIN_X, l_y, SDLUtils::T_ALIGN_LEFT, SDLUtils::T_ALIGN_MIDDLE);
+*/         
 
       // File size
       if (m_fileLister[l_i].m_size == ULLONG_MAX)
