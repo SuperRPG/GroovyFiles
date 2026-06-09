@@ -190,7 +190,7 @@ void Keyboard::init(void)
    // Size and coordinates of the first key
    m_key[0].w = getKeyW();
    m_key[0].h = getKeyH();
-   m_key[0].x = round((SCREEN_WIDTH - (11*m_key[0].w + 10*KEYBOARD_KEY_SPACING)) / 2);
+   m_key[0].x = round((SCREEN_WIDTH - (11*m_key[0].w + 10*KEYBOARD_KEY_SPACING)) / 2 + m_config->hor_margin);
    m_key[0].y = KEYBOARD_MARGIN;
 
    // Height of all the keys
@@ -411,7 +411,7 @@ SDL_Color Keyboard::getBackgroundColor(const int p_i, const bool p_focus) const
 // Key and keyboard size
 int Keyboard::getKeyW(void)
 {
-   return round((SCREEN_WIDTH - 2*KEYBOARD_MARGIN - 10*KEYBOARD_KEY_SPACING) / 11);
+   return round((SCREEN_WIDTH - 2 * KEYBOARD_MARGIN - 10 * KEYBOARD_KEY_SPACING) / 11);
 }
 
 int Keyboard::getKeyH(void)
@@ -426,7 +426,7 @@ int Keyboard::getKeyboardW(void)
 
 int Keyboard::getKeyboardH(void)
 {
-   return 2*KEYBOARD_MARGIN + 3*KEYBOARD_KEY_SPACING + 4*getKeyH();
+   return 2 * KEYBOARD_MARGIN + 3 * KEYBOARD_KEY_SPACING + 4 * getKeyH();
 }
 
 //------------------------------------------------------------------------------

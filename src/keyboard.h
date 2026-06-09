@@ -9,8 +9,7 @@
 class Keyboard : public IWindow
 {
 
-   public:
-
+public:
    // Constructor
    Keyboard(config_t* config, IWindow *p_parent, const bool p_quitOnEnter);
 
@@ -26,8 +25,7 @@ class Keyboard : public IWindow
    static int getKeyboardW(void);
    static int getKeyboardH(void);
 
-   private:
-
+private:
    // Forbidden
    Keyboard(const Keyboard &p_source);
    const Keyboard &operator =(const Keyboard &p_source);

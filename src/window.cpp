@@ -67,20 +67,25 @@ int IWindow::execute(void)
          // Quit
          switch (event.type)
          {
-            case SDL_KEYDOWN:
+            case SDL_KEYDOWN:            
                switch (event.key.keysym.scancode)
                {
                   case SDL_SCANCODE_KP_PLUS:
                      m_config->hor_margin += 1;
                      g_hasChanged = true;
+                     m_nbVisibleLines = ((SCREEN_HEIGHT - m_config->hor_margin *2) - LINE_HEIGHT) / LINE_HEIGHT;
                      break;
 
                   case SDL_SCANCODE_KP_MINUS:
                      m_config->hor_margin -= 1;
                      g_hasChanged = true;
+                     m_nbVisibleLines = ((SCREEN_HEIGHT - m_config->hor_margin *2) - LINE_HEIGHT) / LINE_HEIGHT;                     
+                     break;
+
+                  default:
                      break;
                }
-               break;
+            break;
          }
 
          if (event.type == SDL_QUIT)
